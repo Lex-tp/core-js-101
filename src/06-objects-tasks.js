@@ -116,33 +116,82 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  selector: '',
+
+  element(value) {
+    if (this.name === 'id') {
+      throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const element = Object.create(this);
+    element.selector += value;
+    if (element.name === 'element') {
+      throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    element.name = 'element';
+    return element;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.name === 'class' || this.name === 'pseudoElement') {
+      throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const id = Object.create(this);
+    id.selector += `#${value}`;
+    if (id.name === 'id') {
+      throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    id.name = 'id';
+    return id;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.name === 'attr') {
+      throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const thisClass = Object.create(this);
+    thisClass.selector += `.${value}`;
+    thisClass.name = 'class';
+    return thisClass;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.name === 'pseudoClass') {
+      throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const attribute = Object.create(this);
+    attribute.selector += `[${value}]`;
+    attribute.name = 'attr';
+    return attribute;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.name === 'pseudoElement') {
+      throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const pseudoClass = Object.create(this);
+    pseudoClass.selector += `:${value}`;
+    pseudoClass.name = 'pseudoClass';
+    return pseudoClass;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const pseudoElement = Object.create(this);
+    pseudoElement.selector += `::${value}`;
+    if (pseudoElement.name === 'pseudoElement') {
+      throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    pseudoElement.name = 'pseudoElement';
+    return pseudoElement;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const combine = Object.create(this);
+    const valueFirst = selector1.selector;
+    const valueSecond = selector2.selector;
+    combine.selector = `${valueFirst} ${combinator} ${valueSecond}`;
+    return combine;
   },
+  stringify() { return this.selector; },
 };
 
 
